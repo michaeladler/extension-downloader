@@ -1,0 +1,26 @@
+[[extensions]]
+browser = "firefox"
+profile = "~/.mozilla/firefox/XXXXXXXX.default"
+names = ["ublock-origin", "sidebery", "vimium-ff", "darkreader"]
+
+[[extensions]]
+browser = "firefox"
+profile = "~/.librewolf/XXXXXXXX.default"
+names = ["sidebery", "vimium-ff", "darkreader"]
+
+[[extensions]]
+browser = "chromium"
+profile = "~/.config/chromium"
+names = [
+    "cjpalhdlnbpafiamejdnhcphjbkeiagm", # ublock-origin
+    "dbepggeogbaibhgnhhndojpepiihcmeb", # vimium
+    "eimadpbcbfnmbkopoojfekhnkhdbieeh", # darkreader
+]
+
+[[extensions]]
+browser = "chromium"
+profile = "~/.config/BraveSoftware/Brave-Browser"
+names = [
+    "dbepggeogbaibhgnhhndojpepiihcmeb", # vimium
+    "eimadpbcbfnmbkopoojfekhnkhdbieeh", # darkreader
+]
