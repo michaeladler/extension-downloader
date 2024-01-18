@@ -1,3 +1,4 @@
 /extension-downloader
 *.cov
 dist/
+result
