@@ -5,7 +5,7 @@ github.com/BurntSushi/toml/internal
 # github.com/davecgh/go-spew v1.1.1
 ## explicit
 github.com/davecgh/go-spew/spew
-# github.com/lmittmann/tint v1.0.3
+# github.com/lmittmann/tint v1.0.4
 ## explicit; go 1.21
 github.com/lmittmann/tint
 # github.com/pmezard/go-difflib v1.0.0
