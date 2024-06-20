@@ -12,6 +12,8 @@ import (
 func InstallExtension(fs afero.Fs, srcFile string, profileDir string) (bool, error) {
 	fname := path.Base(srcFile)
 	extDir := path.Join(profileDir, "extensions")
+	_ = fs.MkdirAll(extDir, 0755)
+
 	f, err := afero.TempFile(fs, extDir, fmt.Sprintf("%s.*", fname))
 	if err != nil {
 		return false, err
