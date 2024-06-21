@@ -71,7 +71,7 @@ func _main(fs afero.Fs) int {
 	configPath := pathutil.ExpandUser("~/.config/extension-downloader/config.toml")
 	cfg, err := config.LoadConfig(fs, configPath)
 	if err != nil {
-		slog.Error("Failed to load config file", "configPath", configPath)
+		slog.Error("Failed to load config file", "configPath", configPath, "err", err)
 		return 1
 	}
 
@@ -95,10 +95,13 @@ func _main(fs afero.Fs) int {
 	for _, extCfg := range cfg.Extensions {
 		profile := extCfg.Profile
 		for _, name := range extCfg.Names {
-			if extCfg.Browser == "firefox" {
+			if extCfg.Browser == config.FIREFOX {
 				firefoxToProfiles[name] = append(firefoxToProfiles[name], profile)
-			} else if extCfg.Browser == "chromium" {
+			} else if extCfg.Browser == config.CHROMIUM {
 				chromiumToProfiles[name] = append(chromiumToProfiles[name], profile)
+			} else {
+				slog.Error("Unsupported browser", "browser", extCfg.Browser)
+				return 1
 			}
 		}
 	}

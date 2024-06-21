@@ -31,6 +31,22 @@ names = [
 	assert.Len(t, cfg.Extensions[1].Names, 1)
 }
 
+func TestLoadConfig_InvalidBrowser(t *testing.T) {
+	exampleConfig := `
+[[extensions]]
+browser = "foo"
+profile = "~/.mozilla/firefox/default"
+names = ["ublock-origin"]
+`
+
+	fs := afero.NewMemMapFs()
+	_ = afero.WriteFile(fs, "config.toml", []byte(exampleConfig), 0644)
+	cfg, err := LoadConfig(fs, "config.toml")
+	assert.Error(t, err)
+	assert.ErrorContains(t, err, "unsupported browser")
+	assert.Nil(t, cfg)
+}
+
 func TestLoadConfig_NotFound(t *testing.T) {
 	fs := afero.NewMemMapFs()
 	cfg, err := LoadConfig(fs, "config.toml")
