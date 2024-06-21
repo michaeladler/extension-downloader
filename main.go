@@ -87,18 +87,17 @@ func _main(fs afero.Fs) int {
 
 	var errCount atomic.Int32
 
-	// collect ids to fetch
-	chromiumToProfiles := make(map[string][]string, 32)
-	firefoxToProfiles := make(map[string][]string, 32)
+	// collect extensions to fetch (map extension name to profile dirs)
+	extToChromiumProfile := make(map[string][]string, 32)
+	extToFirefoxProfile := make(map[string][]string, 32)
 
 	start := time.Now()
 	for _, extCfg := range cfg.Extensions {
-		profile := extCfg.Profile
-		for _, name := range extCfg.Names {
+		for _, extName := range extCfg.Names {
 			if extCfg.Browser == config.FIREFOX {
-				firefoxToProfiles[name] = append(firefoxToProfiles[name], profile)
+				extToFirefoxProfile[extName] = append(extToFirefoxProfile[extName], extCfg.Profile)
 			} else if extCfg.Browser == config.CHROMIUM {
-				chromiumToProfiles[name] = append(chromiumToProfiles[name], profile)
+				extToChromiumProfile[extName] = append(extToChromiumProfile[extName], extCfg.Profile)
 			} else {
 				slog.Error("Unsupported browser", "browser", extCfg.Browser)
 				return 1
@@ -108,7 +107,13 @@ func _main(fs afero.Fs) int {
 
 	var firefoxWg sync.WaitGroup
 	firefoxResults := make(chan FirefoxResult)
-	for name := range firefoxToProfiles {
+
+	names := make([]string, 0, len(extToFirefoxProfile))
+	for name := range extToFirefoxProfile {
+		names = append(names, name)
+	}
+	slog.Debug("Downloading Firefox extensions", "names", names)
+	for _, name := range names {
 		name := name
 		// capture loop variable
 		firefoxWg.Add(1)
@@ -128,7 +133,12 @@ func _main(fs afero.Fs) int {
 
 	var chromiumWg sync.WaitGroup
 	chromiumResults := make(chan ChromiumResult)
-	for id := range chromiumToProfiles {
+	ids := make([]string, 0, len(extToChromiumProfile))
+	for id := range extToChromiumProfile {
+		ids = append(ids, id)
+	}
+	slog.Debug("Downloading Chromium extensions", "ids", ids)
+	for _, id := range ids {
 		id := id
 		chromiumWg.Add(1)
 		go func() {
@@ -153,7 +163,7 @@ func _main(fs afero.Fs) int {
 		for res := range chromiumResults {
 			id := res.Id
 			fname := res.Fname
-			for _, profile := range chromiumToProfiles[id] {
+			for _, profile := range extToChromiumProfile[id] {
 				slog.Debug("Installing Chromium extension", "id", id, "fname", fname, "profile", profile)
 				installed, err := chromium.InstallExtension(fs, fname, profile)
 				if err != nil {
@@ -174,7 +184,7 @@ func _main(fs afero.Fs) int {
 		for res := range firefoxResults {
 			name := res.Name
 			fname := res.Fname
-			for _, profile := range firefoxToProfiles[name] {
+			for _, profile := range extToFirefoxProfile[name] {
 				slog.Debug("Installing Firefox extension", "name", name, "fname", fname, "profile", profile)
 				installed, err := firefox.InstallExtension(fs, fname, profile)
 				if err != nil {

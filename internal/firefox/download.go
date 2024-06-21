@@ -57,7 +57,7 @@ func DownloadExtension(fs afero.Fs, name string, destDir string) (*string, error
 		if oldMf, err := manifest.ReadManifest(fs, dest); err == nil {
 			oldVersion := oldMf.Version
 			if oldVersion == version {
-				slog.Debug("Firefox extension already up-to-date", "name", name, "version", version)
+				slog.Info("Firefox extension already up-to-date", "name", name, "version", version)
 				return &dest, nil
 			} else {
 				slog.Info("Updating Firefox extension", "name", name, "oldVersion", oldVersion, "version", version)

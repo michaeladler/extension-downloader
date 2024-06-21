@@ -28,7 +28,7 @@ func InstallExtension(fs afero.Fs, crxFile string, profileDir string) (bool, err
 		if b, err := afero.ReadFile(fs, manifestPath); err == nil {
 			if err := json.Unmarshal(b, &oldMf); err == nil {
 				if oldMf == newMf {
-					slog.Debug("Chromium extension already up-to-date", "name", mf.Name, "version", mf.Version)
+					slog.Info("Chromium extension already up-to-date", "name", mf.Name, "version", mf.Version, "profileDir", profileDir)
 					return false, nil
 				}
 			}
