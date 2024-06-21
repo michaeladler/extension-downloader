@@ -74,7 +74,12 @@ func _main(fs afero.Fs) int {
 		slog.Error("Failed to load config file", "configPath", configPath)
 		return 1
 	}
-	extensionsDir := path.Join(os.Getenv("HOME"), ".local", "share", "extension-downloader")
+
+	extensionsDir := os.Getenv("XDG_DATA_HOME")
+	if extensionsDir == "" {
+		extensionsDir = path.Join(os.Getenv("HOME"), ".local", "share")
+	}
+	extensionsDir = path.Join(extensionsDir, "extension-downloader")
 	extensionsDirFirefox := path.Join(extensionsDir, "firefox")
 	extensionsDirChromium := path.Join(extensionsDir, "chromium")
 	_ = fs.MkdirAll(extensionsDirFirefox, 0755)
