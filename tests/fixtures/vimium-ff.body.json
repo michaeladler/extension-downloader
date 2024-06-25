@@ -1,0 +1,188 @@
+{
+  "id": 808538,
+  "authors": [
+    {
+      "id": 14971172,
+      "name": "Phil Crosby",
+      "url": "https://addons.mozilla.org/en-US/firefox/user/14971172/",
+      "username": "anonymous-092b438c865688bbef439ca0e0301e6c",
+      "picture_url": "https://addons.mozilla.org/user-media/userpics/72/1172/14971172/14971172.png?modified=1558425113"
+    },
+    {
+      "id": 12979436,
+      "name": "Stephen Blott",
+      "url": "https://addons.mozilla.org/en-US/firefox/user/12979436/",
+      "username": "smblott",
+      "picture_url": null
+    }
+  ],
+  "average_daily_users": 37105,
+  "categories": {
+    "firefox": [
+      "search-tools"
+    ]
+  },
+  "contributions_url": "",
+  "created": "2017-04-22T11:42:45Z",
+  "current_version": {
+    "id": 5715489,
+    "compatibility": {
+      "firefox": {
+        "min": "112.0",
+        "max": "*"
+      }
+    },
+    "edit_url": "https://addons.mozilla.org/en-US/developers/addon/vimium-ff/versions/5715489",
+    "is_strict_compatibility_enabled": false,
+    "license": {
+      "id": 22,
+      "is_custom": false,
+      "name": {
+        "en-US": "The MIT License"
+      },
+      "url": "http://www.opensource.org/license/mit"
+    },
+    "release_notes": null,
+    "reviewed": "2024-04-04T12:40:07Z",
+    "version": "2.1.2",
+    "files": [
+      {
+        "id": 4259790,
+        "created": "2024-04-04T00:16:37Z",
+        "hash": "sha256:3b9d43ee277ff374e3b1153f97dc20cb06e654116a833674c79b43b8887820e1",
+        "is_restart_required": false,
+        "is_webextension": true,
+        "is_mozilla_signed_extension": false,
+        "platform": "all",
+        "size": 281577,
+        "status": "public",
+        "url": "https://addons.mozilla.org/firefox/downloads/file/4259790/vimium_ff-2.1.2.xpi",
+        "permissions": [
+          "tabs",
+          "bookmarks",
+          "history",
+          "storage",
+          "sessions",
+          "notifications",
+          "scripting",
+          "webNavigation",
+          "clipboardRead",
+          "clipboardWrite",
+          "<all_urls>",
+          "file:///",
+          "file:///*/"
+        ],
+        "optional_permissions": [],
+        "host_permissions": [
+          "<all_urls>"
+        ]
+      }
+    ]
+  },
+  "default_locale": "en-US",
+  "description": {
+    "en-US": "Keyboard Bindings\n\nModifier keys are specified as &lt;c-x&gt;, &lt;m-x&gt;, and &lt;a-x&gt; for ctrl+x, meta+x, and alt+x respectively. See the next section for how to customize these bindings.\n\nOnce you have Vimium installed, you can see this list of key bindings at any time by typing ?.\n\nNavigating the current page:\n\n?       show the help dialog for a list of all available keys\nh       scroll left\nj       scroll down\nk       scroll up\nl       scroll right\ngg      scroll to top of the page\nG       scroll to bottom of the page\nd       scroll down half a page\nu       scroll up half a page\nf       open a link in the current tab\nF       open a link in a new tab\nr       reload\ngs      view source\ni       enter insert mode -- all commands will be ignored until you hit Esc to exit\nyy      copy the current url to the clipboard\nyf      copy a link url to the clipboard\ngf      cycle forward to the next frame\ngF      focus the main/top frame\n\nNavigating to new pages:\n\no       Open URL, bookmark, or history entry\nO       Open URL, bookmark, history entry in a new tab\nb       Open bookmark\nB       Open bookmark in a new tab\n\nUsing find:\n\n/       enter find mode\n          -- type your search query and hit enter to search, or Esc to cancel\nn       cycle forward to the next find match\nN       cycle backward to the previous find match\n\nFor advanced usage, see regular expressions on the wiki.\n\nNavigating your history:\n\nH       go back in history\nL       go forward in history\n\nManipulating tabs:\n\nJ, gT   go one tab left\nK, gt   go one tab right\ng0      go to the first tab\ng$      go to the last tab\n^       visit the previously-visited tab\nt       create tab\nyt      duplicate current tab\nx       close current tab\nX       restore closed tab (i.e. unwind the 'x' command)\nT       search through your open tabs\n&lt;a-p&gt;   pin/unpin current tab\n\nUsing marks:\n\nma, mA  set local mark \"a\" (global mark \"A\")\n`a, `A  jump to local mark \"a\" (global mark \"A\")\n``      jump back to the position before the previous jump\n          -- that is, before the previous gg, G, n, N, / or `a\n\nAdditional advanced browsing commands:\n\n]], [[  Follow the link labeled 'next' or '&gt;' ('previous' or '&lt;')\n          - helpful for browsing paginated sites\n&lt;a-f&gt;   open multiple links in a new tab\ngi      focus the first (or n-th) text input box on the page\ngu      go up one level in the URL hierarchy\ngU      go up to root of the URL hierarchy\nge      edit the current URL\ngE      edit the current URL and open in a new tab\nzH      scroll all the way left\nzL      scroll all the way right\nv       enter visual mode; use p/P to paste-and-go, use y to yank\nV       enter visual line mode\n\nVimium supports command repetition so, for example, hitting 5t will open 5 tabs in rapid succession. &lt;Esc&gt; (or &lt;c-[&gt;) will clear any partial commands in the queue and will also exit insert and find modes.\n\nThere are some advanced commands which aren't documented here; refer to the help dialog (type ?) for a full list."
+  },
+  "developer_comments": null,
+  "edit_url": "https://addons.mozilla.org/en-US/developers/addon/vimium-ff/edit",
+  "guid": "{d7742d87-e61d-4b78-b8a1-b469842139fa}",
+  "has_eula": false,
+  "has_privacy_policy": false,
+  "homepage": {
+    "en-US": "https://github.com/philc/vimium"
+  },
+  "icon_url": "https://addons.mozilla.org/user-media/addon_icons/808/808538-64.png?modified=683f1684",
+  "icons": {
+    "32": "https://addons.mozilla.org/user-media/addon_icons/808/808538-32.png?modified=683f1684",
+    "64": "https://addons.mozilla.org/user-media/addon_icons/808/808538-64.png?modified=683f1684",
+    "128": "https://addons.mozilla.org/user-media/addon_icons/808/808538-128.png?modified=683f1684"
+  },
+  "is_disabled": false,
+  "is_experimental": false,
+  "last_updated": "2024-04-04T12:40:07Z",
+  "name": {
+    "en-US": "Vimium"
+  },
+  "previews": [
+    {
+      "id": 293766,
+      "caption": {
+        "en-GB": "",
+        "en-US": "Type \"f\" to show a hint for every link on the page. Type the characters next to a link to click on that link, without using the mouse."
+      },
+      "image_size": [
+        2400,
+        1710
+      ],
+      "image_url": "https://addons.mozilla.org/user-media/previews/full/293/293766.png?modified=1704069500",
+      "thumbnail_size": [
+        533,
+        380
+      ],
+      "thumbnail_url": "https://addons.mozilla.org/user-media/previews/thumbs/293/293766.jpg?modified=1704069500"
+    },
+    {
+      "id": 293763,
+      "caption": null,
+      "image_size": [
+        2400,
+        1710
+      ],
+      "image_url": "https://addons.mozilla.org/user-media/previews/full/293/293763.png?modified=1704069500",
+      "thumbnail_size": [
+        533,
+        380
+      ],
+      "thumbnail_url": "https://addons.mozilla.org/user-media/previews/thumbs/293/293763.jpg?modified=1704069500"
+    },
+    {
+      "id": 293765,
+      "caption": {
+        "en-GB": "",
+        "en-US": "Type \"?\" to show the help dialog, with all available commands."
+      },
+      "image_size": [
+        2400,
+        1710
+      ],
+      "image_url": "https://addons.mozilla.org/user-media/previews/full/293/293765.png?modified=1704069500",
+      "thumbnail_size": [
+        533,
+        380
+      ],
+      "thumbnail_url": "https://addons.mozilla.org/user-media/previews/thumbs/293/293765.jpg?modified=1704069500"
+    }
+  ],
+  "promoted": {
+    "apps": [
+      "firefox",
+      "android"
+    ],
+    "category": "notable"
+  },
+  "ratings": {
+    "average": 4.8057,
+    "bayesian_average": 4.792107045834411,
+    "count": 489,
+    "text_count": 177
+  },
+  "ratings_url": "https://addons.mozilla.org/en-US/firefox/addon/vimium-ff/reviews/",
+  "requires_payment": false,
+  "review_url": "https://addons.mozilla.org/en-US/reviewers/review/808538",
+  "slug": "vimium-ff",
+  "status": "public",
+  "summary": {
+    "en-US": "The Hacker's Browser. Vimium provides keyboard shortcuts for navigation and control in the spirit of Vim."
+  },
+  "support_email": {
+    "en-US": "vimium-store@googlegroups.com"
+  },
+  "support_url": {
+    "en-US": "https://github.com/philc/vimium/issues"
+  },
+  "tags": [],
+  "type": "extension",
+  "url": "https://addons.mozilla.org/en-US/firefox/addon/vimium-ff/",
+  "versions_url": "https://addons.mozilla.org/en-US/firefox/addon/vimium-ff/versions/",
+  "weekly_downloads": 1404
+}

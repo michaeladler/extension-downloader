@@ -2,3 +2,8 @@
 *.cov
 dist/
 result
+
+
+# Added by cargo
+
+/target

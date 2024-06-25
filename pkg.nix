@@ -1,22 +1,18 @@
-{ buildGoModule, lib }:
+{ rustPlatform, lib, pkg-config, openssl }:
 
-buildGoModule rec {
+rustPlatform.buildRustPackage {
   pname = "extension-downloader";
-  version = "0.1.0";
+  version = "0.2.0";
 
   src = ./.;
 
-  vendorHash = null;
+  nativeBuildInputs = [ pkg-config ];
 
-  # requires network connectivity
-  doCheck = false;
+  buildInputs = [ openssl ];
 
-  ldflags = [
-    "-w"
-    "-X=main.Version=${version}"
-    "-X=main.Commit=git"
-    "-X=main.Date=1970-01-01T00:00:00+00:00"
-  ];
+  cargoLock = {
+    lockFile = ./Cargo.lock;
+  };
 
   meta = with lib; {
     description = "Download browser extensions for Firefox and Chromium-based browsers";
