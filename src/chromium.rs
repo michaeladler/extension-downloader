@@ -4,14 +4,14 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 use tokio::fs::{create_dir_all, File};
 use tokio::io::AsyncWriteExt;
-use tracing::{debug, info};
+use tracing::info;
 
 use crate::crx3;
 use crate::manifest;
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct ExternalExt {
-    pub external_crx: String,
+    pub external_crx: PathBuf,
     pub external_version: String,
 }
 
@@ -28,8 +28,8 @@ pub async fn download_extension(
     base_url: Option<String>,
     extension_id: String,
     dest_dir: &Path,
-) -> Result<PathBuf> {
-    info!("Downloading Chromium extension with id {extension_id}");
+) -> Result<ExternalExt> {
+    info!("Downloading Chromium extension {extension_id}");
 
     let base_url: String = base_url.unwrap_or(DEFAULT_BASE_URL_GOOGLE.to_string());
     let body = client.get(format!(
@@ -45,35 +45,33 @@ pub async fn download_extension(
                          // due to 'early eof'
     std::mem::drop(file); // close file
 
-    Ok(destination)
+    let crx_file = crx3::parse_file(&destination).await?;
+    let manifest = manifest::from_bytes(&crx_file.zip_archive)?;
+    info!(
+        "Downloaded extension with id {}: name={} version {}",
+        extension_id, manifest.name, manifest.version
+    );
+    Ok(ExternalExt {
+        external_crx: destination,
+        external_version: manifest.version.clone(),
+    })
 }
 
-pub async fn install_extension(crx_path: &Path, profile_dir: &Path) -> Result<()> {
+pub async fn install_extension(ext: &ExternalExt, profile_dir: &Path) -> Result<()> {
     let profile_extensions = profile_dir.join("External Extensions");
-    let mut json_path = profile_extensions.join(crx_path.file_name().unwrap());
+    let mut json_path = profile_extensions.join(ext.external_crx.file_name().unwrap());
     json_path.set_extension("json");
 
-    let crx_path = crx_path.to_str().unwrap();
     let profile_dir = profile_dir.to_str().unwrap();
-    debug!("Installing Chromium extension {crx_path} into profile {profile_dir}");
-
-    let crx_file = crx3::parse_file(&crx_path).await?;
-    let manifest = manifest::from_bytes(&crx_file.zip_archive)?;
-    let external_ext = ExternalExt {
-        external_crx: crx_path.to_owned(),
-        external_version: manifest.version.clone(),
-    };
     info!(
-        "Installing Chromium extension {} {} into profile {profile_dir}",
-        manifest.name, manifest.version
+        "Installing Chromium extension {:?} into profile {}",
+        ext.external_crx, profile_dir
     );
 
     create_dir_all(&profile_extensions).await?;
 
-    debug!("Generating {:?}", json_path);
     let mut json_file = File::create(&json_path).await?;
-    let contents = serde_json::to_vec_pretty(&external_ext).unwrap();
+    let contents = serde_json::to_vec_pretty(&ext).unwrap();
     json_file.write_all(&contents).await?;
-    debug!("Generated {:?}", json_path);
     Ok(())
 }

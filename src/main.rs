@@ -7,9 +7,9 @@ mod manifest;
 use anyhow::Result;
 use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
-use std::path::Path;
 use std::process::ExitCode;
 use std::{collections::HashMap, path::PathBuf};
+use tokio::task::JoinSet;
 use tracing::{error, Level};
 use tracing_subscriber::FmtSubscriber;
 
@@ -17,30 +17,31 @@ use config::Config;
 
 #[tokio::main]
 async fn main() -> ExitCode {
-    setup_logging(Level::INFO).unwrap();
+    let subscriber = FmtSubscriber::builder()
+        .with_max_level(Level::INFO)
+        .finish();
+    tracing::subscriber::set_global_default(subscriber).unwrap();
     let cfg_path = dirs::config_dir()
         .unwrap()
         .join("extension-downloader")
         .join("config.toml");
     let cfg = config::from_file(&cfg_path).await.unwrap();
     let err_count = run(&cfg).await.unwrap();
-    ExitCode::from(err_count as u8)
+    if err_count.is_positive() {
+        error!("{} errors occurred", err_count);
+        return ExitCode::FAILURE;
+    }
+    return ExitCode::SUCCESS;
 }
 
-fn setup_logging(level: Level) -> Result<()> {
-    let subscriber = FmtSubscriber::builder().with_max_level(level).finish();
-    tracing::subscriber::set_global_default(subscriber)?;
-    Ok(())
-}
-
-async fn run(cfg: &Config) -> Result<i16> {
+async fn run(cfg: &Config) -> Result<i32> {
     // Retry up to 3 times with increasing intervals between attempts.
     let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
     let client = ClientBuilder::new(reqwest::Client::new())
         .with(RetryTransientMiddleware::new_with_policy(retry_policy))
         .build();
 
-    let mut ext_to_profiles: HashMap<(String, config::BrowserKind), Vec<&PathBuf>> =
+    let mut ext_to_profiles: HashMap<(String, config::BrowserKind), Vec<PathBuf>> =
         HashMap::with_capacity(128);
     // deduplicate extensions
     for ext in &cfg.extensions {
@@ -48,7 +49,7 @@ async fn run(cfg: &Config) -> Result<i16> {
             ext_to_profiles
                 .entry((name.to_string(), ext.browser))
                 .or_default()
-                .push(&ext.profile);
+                .push(ext.profile.clone());
         }
     }
 
@@ -56,78 +57,75 @@ async fn run(cfg: &Config) -> Result<i16> {
     let dest_dir_chromium = extensions_dir.join("chromium");
     let dest_dir_firefox = extensions_dir.join("firefox");
 
-    let mut err_count: i16 = 0;
-    for ((name, kind), profiles) in &ext_to_profiles {
+    let mut set = JoinSet::new();
+
+    let mut err_count = 0;
+    for ((name, kind), profiles) in ext_to_profiles.drain() {
         match kind {
             config::BrowserKind::Chromium => {
-                if let Err(err) = do_chromium(
-                    cfg,
+                set.spawn(do_chromium(
+                    cfg.base_url_google.clone(),
                     client.clone(),
                     name,
-                    &dest_dir_chromium,
-                    profiles.as_slice(),
-                )
-                .await
-                {
-                    error!("Failed to install Chromium extension {name}: {err}");
-                    err_count += 1;
-                }
+                    dest_dir_chromium.clone(),
+                    profiles,
+                ));
             }
             config::BrowserKind::Firefox => {
-                if let Err(err) = do_firefox(
-                    cfg,
+                set.spawn(do_firefox(
+                    cfg.base_url_mozilla.clone(),
                     client.clone(),
                     name,
-                    &dest_dir_firefox,
-                    profiles.as_slice(),
-                )
-                .await
-                {
-                    error!("Failed to install Firefox extension {name}: {err}");
-                    err_count += 1;
-                }
+                    dest_dir_firefox.clone(),
+                    profiles,
+                ));
             }
         }
     }
+
+    // drain result set and increase error count
+    while let Some(result) = set.join_next().await {
+        match result {
+            Ok(Ok(_)) => {}
+            Ok(Err(e)) => {
+                error!("Error: {}", e);
+                err_count += 1;
+            }
+            Err(e) => {
+                error!("Error: {}", e);
+                err_count += 1;
+            }
+        }
+    }
+
     Ok(err_count)
 }
 
 async fn do_chromium(
-    cfg: &Config,
+    base_url: Option<String>,
     client: ClientWithMiddleware,
-    name: &str,
-    dest_dir: &Path,
-    profiles: &[&PathBuf],
+    name: String,
+    dest_dir: PathBuf,
+    profiles: Vec<PathBuf>,
 ) -> Result<()> {
-    let crx_path = chromium::download_extension(
-        client,
-        cfg.base_url_google.clone(),
-        name.to_string(),
-        dest_dir,
-    )
-    .await?;
+    let ext = chromium::download_extension(client, base_url, name.to_string(), &dest_dir).await?;
     for p in profiles {
-        chromium::install_extension(&crx_path, p).await?;
+        chromium::install_extension(&ext, &p).await?;
     }
     Ok(())
 }
 
 async fn do_firefox(
-    cfg: &Config,
+    base_url: Option<String>,
     client: ClientWithMiddleware,
-    name: &str,
-    dest_dir: &Path,
-    profiles: &[&PathBuf],
+    name: String,
+    dest_dir: PathBuf,
+    profiles: Vec<PathBuf>,
 ) -> Result<()> {
-    let xpi_path = firefox::download_extension(
-        client.clone(),
-        cfg.base_url_mozilla.clone(),
-        name.to_string(),
-        dest_dir,
-    )
-    .await?;
+    let xpi_path =
+        firefox::download_extension(client.clone(), base_url, name.to_string(), &dest_dir).await?;
     for p in profiles {
-        firefox::install_extension(&xpi_path, p).await?;
+        firefox::install_extension(&xpi_path, &p).await?;
     }
     Ok(())
 }
@@ -199,7 +197,7 @@ mod tests {
         let mut content = String::with_capacity(4096);
         f.read_to_string(&mut content).await.unwrap();
         let ext = serde_json::from_str::<chromium::ExternalExt>(&content).unwrap();
-        assert_eq!(ext.external_crx, crx_file.to_str().unwrap());
+        assert_eq!(ext.external_crx, crx_file);
         assert_eq!(ext.external_version, "2.1.2");
 
         m1.assert_async().await;
