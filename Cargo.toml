@@ -23,5 +23,4 @@ sha2 = "0.10.8"
 
 [dev-dependencies]
 mockito = "1.4.0"
-tempdir = "0.3.7"
-tempfile = "3.10.1"
+temp-dir = "0.1.13"

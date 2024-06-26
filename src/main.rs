@@ -145,7 +145,7 @@ fn get_extensions_dir(cfg: &Config) -> PathBuf {
 mod tests {
     use super::*;
     use std::{io::Write, path::Component};
-    use tempdir::TempDir;
+    use temp_dir::TempDir;
     use tokio::{
         fs::{self},
         io::AsyncReadExt,
@@ -167,7 +167,7 @@ mod tests {
             .create_async()
             .await;
 
-        let tmp_dir = TempDir::new("test_chromium").unwrap();
+        let tmp_dir = TempDir::new().unwrap();
         let extensions_dir = tmp_dir.path().join("storage");
         let chromium_profile = tmp_dir.path().join("profile/chromium");
         let cfg = Config {
@@ -235,7 +235,7 @@ mod tests {
             .create_async()
             .await;
 
-        let tmp_dir = TempDir::new("test_firefox").unwrap();
+        let tmp_dir = TempDir::new().unwrap();
         let extensions_dir = tmp_dir.path().join("storage");
         let firefox_profile = tmp_dir.path().join("profile/firefox");
         let cfg = Config {
@@ -316,7 +316,7 @@ mod tests {
             .create_async()
             .await;
 
-        let tmp_dir = TempDir::new("test_firefox").unwrap();
+        let tmp_dir = TempDir::new().unwrap();
         let extensions_dir = tmp_dir.path().join("storage");
         let firefox_profile = tmp_dir.path().join("profile/firefox");
         let cfg = Config {
@@ -352,7 +352,7 @@ mod tests {
 
     #[test]
     fn test_main() {
-        let tmp_dir = TempDir::new("test_main").unwrap();
+        let tmp_dir = TempDir::new().unwrap();
         std::env::set_var("XDG_CONFIG_HOME", tmp_dir.path().to_str().unwrap());
         let cfg = Config {
             base_url_mozilla: None,

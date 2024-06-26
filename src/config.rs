@@ -50,12 +50,12 @@ pub async fn from_file(path: &Path) -> Result<Config> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use tempdir::TempDir;
+    use temp_dir::TempDir;
     use tokio::fs;
 
     #[tokio::test]
     async fn test_from_file() {
-        let dir = TempDir::new("test_from_file").unwrap();
+        let dir = TempDir::new().unwrap();
         let path = dir.path().join("config.toml");
         let contents = r#"
             base_url_mozilla = "https://mozilla.org"

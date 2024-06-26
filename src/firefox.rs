@@ -124,7 +124,7 @@ fn compute_hash(algo: &str, content: &[u8]) -> Option<String> {
 mod tests {
     use super::*;
     use reqwest_middleware::ClientBuilder;
-    use tempdir::TempDir;
+    use temp_dir::TempDir;
 
     #[tokio::test]
     async fn test_download_extension_already_exists_same_version() {
@@ -151,7 +151,7 @@ mod tests {
 
         let client = ClientBuilder::new(reqwest::Client::new()).build();
 
-        let dest_dir = TempDir::new("test_download_extension_already_exists").unwrap();
+        let dest_dir = TempDir::new().unwrap();
         // create extension in dest_dir to prevent re-download
         let to = dest_dir.path().join(format!("{}.xpi", extension.guid));
         fs::copy("tests/fixtures/vimium_ff-2.1.2.xpi", to)
@@ -204,7 +204,7 @@ mod tests {
 
         let client = ClientBuilder::new(reqwest::Client::new()).build();
 
-        let dest_dir = TempDir::new("test_download_extension_already_exists").unwrap();
+        let dest_dir = TempDir::new().unwrap();
         // create extension in dest_dir to prevent re-download
         let to = dest_dir.path().join(format!("{}.xpi", extension.guid));
         fs::copy("tests/fixtures/vimium_ff-2.1.2.xpi", to)
@@ -258,7 +258,7 @@ mod tests {
 
         let client = ClientBuilder::new(reqwest::Client::new()).build();
 
-        let dest_dir = TempDir::new("test_download_extension_invalid_hash").unwrap();
+        let dest_dir = TempDir::new().unwrap();
 
         let result = download_extension(
             client,
@@ -307,7 +307,7 @@ mod tests {
 
         let client = ClientBuilder::new(reqwest::Client::new()).build();
 
-        let dest_dir = TempDir::new("test_download_extension_invalid_hash").unwrap();
+        let dest_dir = TempDir::new().unwrap();
 
         let result = download_extension(
             client,

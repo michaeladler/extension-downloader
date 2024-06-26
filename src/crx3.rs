@@ -66,7 +66,7 @@ async fn read_u32(file: &mut File) -> Result<u32> {
 mod tests {
     use super::*;
     use std::os::unix::fs::MetadataExt;
-    use tempfile::tempdir;
+    use temp_dir::TempDir;
     use tokio::{fs, io::AsyncWriteExt};
 
     #[tokio::test]
@@ -87,7 +87,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_parse_file_invalid() {
-        let dir = tempdir().unwrap();
+        let dir = TempDir::new().unwrap();
         let path = dir.path().join("invalid.crx3");
         {
             let mut file = File::create(&path).await.unwrap();
