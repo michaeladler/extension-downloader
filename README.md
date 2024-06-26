@@ -6,20 +6,14 @@
 `extension-downloader` is a tool to **download browser extensions** for Firefox and Chromium-based browsers.
 This can be used to maintain and deploy browser extensions across multiple systems.
 
-## Prerequisites
-
-Before you begin, ensure you have the following installed:
-
-- [Go](https://golang.org/dl/) (1.21 or later)
-
 ## Installation
 
 To install `extension-downloader`, follow these steps:
 
-1. Install `extension-downloader`:
+1. Build and install `extension-downloader` using Rust's cargo:
 
 ```bash
-go install github.com/michaeladler/extension-downloader@latest
+cargo install --git https://github.com/michaeladler/extension-downloader.git
 ```
 
 2. Copy the example configuration file to your user configuration directory:
