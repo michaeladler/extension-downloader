@@ -18,9 +18,7 @@
   ],
   "average_daily_users": 37105,
   "categories": {
-    "firefox": [
-      "search-tools"
-    ]
+    "firefox": ["search-tools"]
   },
   "contributions_url": "",
   "created": "2017-04-22T11:42:45Z",
@@ -73,9 +71,7 @@
           "file:///*/"
         ],
         "optional_permissions": [],
-        "host_permissions": [
-          "<all_urls>"
-        ]
+        "host_permissions": ["<all_urls>"]
       }
     ]
   },
@@ -110,29 +106,17 @@
         "en-GB": "",
         "en-US": "Type \"f\" to show a hint for every link on the page. Type the characters next to a link to click on that link, without using the mouse."
       },
-      "image_size": [
-        2400,
-        1710
-      ],
+      "image_size": [2400, 1710],
       "image_url": "https://addons.mozilla.org/user-media/previews/full/293/293766.png?modified=1704069500",
-      "thumbnail_size": [
-        533,
-        380
-      ],
+      "thumbnail_size": [533, 380],
       "thumbnail_url": "https://addons.mozilla.org/user-media/previews/thumbs/293/293766.jpg?modified=1704069500"
     },
     {
       "id": 293763,
       "caption": null,
-      "image_size": [
-        2400,
-        1710
-      ],
+      "image_size": [2400, 1710],
       "image_url": "https://addons.mozilla.org/user-media/previews/full/293/293763.png?modified=1704069500",
-      "thumbnail_size": [
-        533,
-        380
-      ],
+      "thumbnail_size": [533, 380],
       "thumbnail_url": "https://addons.mozilla.org/user-media/previews/thumbs/293/293763.jpg?modified=1704069500"
     },
     {
@@ -141,23 +125,14 @@
         "en-GB": "",
         "en-US": "Type \"?\" to show the help dialog, with all available commands."
       },
-      "image_size": [
-        2400,
-        1710
-      ],
+      "image_size": [2400, 1710],
       "image_url": "https://addons.mozilla.org/user-media/previews/full/293/293765.png?modified=1704069500",
-      "thumbnail_size": [
-        533,
-        380
-      ],
+      "thumbnail_size": [533, 380],
       "thumbnail_url": "https://addons.mozilla.org/user-media/previews/thumbs/293/293765.jpg?modified=1704069500"
     }
   ],
   "promoted": {
-    "apps": [
-      "firefox",
-      "android"
-    ],
+    "apps": ["firefox", "android"],
     "category": "notable"
   },
   "ratings": {
