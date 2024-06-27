@@ -83,18 +83,10 @@ async fn run(cfg: &Config) -> Result<i32> {
         }
     }
 
-    // drain result set and increase error count
     while let Some(result) = set.join_next().await {
-        match result {
-            Ok(Ok(_)) => {}
-            Ok(Err(e)) => {
-                error!("Error: {}", e);
-                err_count += 1;
-            }
-            Err(e) => {
-                error!("Error: {}", e);
-                err_count += 1;
-            }
+        if let Err(err) = result.unwrap() {
+            error!("Error: {}", err);
+            err_count += 1;
         }
     }
 

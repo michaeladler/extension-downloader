@@ -47,10 +47,7 @@ pub async fn download_extension(
 
     let crx_file = crx3::parse_file(&destination).await?;
     let manifest = manifest::from_bytes(&crx_file.zip_archive)?;
-    info!(
-        "Downloaded extension with id {}: name={} version {}",
-        extension_id, manifest.name, manifest.version
-    );
+    info!("Downloaded {extension_id} with manifest: {manifest}");
     Ok(ExternalExt {
         external_crx: destination,
         external_version: manifest.version.clone(),
@@ -63,10 +60,8 @@ pub async fn install_extension(ext: &ExternalExt, profile_dir: &Path) -> Result<
     json_path.set_extension("json");
 
     let profile_dir = profile_dir.to_str().unwrap();
-    info!(
-        "Installing Chromium extension {:?} into profile {}",
-        ext.external_crx, profile_dir
-    );
+    let path = ext.external_crx.to_str().unwrap();
+    info!("Installing Chromium extension {path} into profile {profile_dir}");
 
     create_dir_all(&profile_extensions).await?;
 

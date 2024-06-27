@@ -13,6 +13,12 @@ pub struct Manifest {
     pub version: String,
 }
 
+impl std::fmt::Display for Manifest {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(f, "{} v{}", self.name, self.version)
+    }
+}
+
 pub async fn from_file<P: AsRef<Path>>(path: P) -> Result<Manifest> {
     debug!("Parsing manifest {:?}", path.as_ref());
     let mut file = File::open(&path).await?;
@@ -46,5 +52,14 @@ mod tests {
                 version: "2.1.2".to_string()
             }
         );
+    }
+
+    #[test]
+    fn test_display() {
+        let manifest = Manifest {
+            name: "Vimium".to_string(),
+            version: "2.1.2".to_string(),
+        };
+        assert_eq!(format!("{}", manifest), "Vimium v2.1.2");
     }
 }
