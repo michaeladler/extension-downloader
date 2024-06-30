@@ -1,7 +1,6 @@
 use anyhow::Result;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
-use tilde_expand::tilde_expand;
 use tokio::fs;
 use tracing::debug;
 
@@ -19,8 +18,11 @@ pub struct Config {
 #[derive(Debug, Serialize, Deserialize)]
 /// A browser extension to install.
 pub struct Extension {
+    // The kind of browser to install the extension for.
     pub browser: BrowserKind,
-    pub profile: PathBuf,
+    // Either a file path to the browser profile directory or the Windows registry key.
+    pub profile: String,
+    // The extensions to install.
     pub names: Vec<String>,
 }
 
@@ -39,12 +41,20 @@ pub async fn from_file(path: &Path) -> Result<Config> {
 
     // expand user
     for ext in cfg.extensions.iter_mut() {
-        ext.profile = PathBuf::from(
-            String::from_utf8(tilde_expand(ext.profile.to_str().unwrap().as_bytes())).unwrap(),
-        );
+        ext.profile = expand_tilde(&ext.profile);
     }
     debug!("Loaded config: {:?}", cfg);
     Ok(cfg)
+}
+
+fn expand_tilde(path: &str) -> String {
+    match (path.starts_with("~/"), dirs::home_dir()) {
+        (true, Some(home)) => {
+            // remove leading tilde and join with home dir
+            home.join(&path[2..]).to_string_lossy().into_owned()
+        }
+        _ => path.to_owned(),
+    }
 }
 
 #[cfg(test)]
@@ -78,7 +88,15 @@ mod tests {
         assert_eq!(cfg.extensions_dir, Some(PathBuf::from("/tmp")));
         assert_eq!(cfg.extensions.len(), 1);
         assert_eq!(cfg.extensions[0].browser, BrowserKind::Firefox);
-        assert_eq!(cfg.extensions[0].profile, PathBuf::from("/tmp"));
+        assert_eq!(cfg.extensions[0].profile, "/tmp");
         assert_eq!(cfg.extensions[0].names, vec!["foo".to_string()]);
+    }
+
+    #[test]
+    fn test_expand_tilde() {
+        let home = dirs::home_dir().unwrap();
+        let path = "~/foo";
+        let expanded = expand_tilde(&path);
+        assert_eq!(expanded, home.join("foo").to_str().unwrap());
     }
 }

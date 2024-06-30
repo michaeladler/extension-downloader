@@ -25,6 +25,7 @@ pub struct CrxFile {
     pub zip_archive: Vec<u8>,
 }
 
+#[allow(dead_code)]
 pub async fn parse_file<P: AsRef<Path>>(path: P) -> Result<CrxFile> {
     let mut file = File::open(path).await?;
 
@@ -65,9 +66,8 @@ async fn read_u32(file: &mut File) -> Result<u32> {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::os::unix::fs::MetadataExt;
     use temp_dir::TempDir;
-    use tokio::{fs, io::AsyncWriteExt};
+    use tokio::io::AsyncWriteExt;
 
     #[tokio::test]
     async fn test_parse_file() {
@@ -77,12 +77,6 @@ mod tests {
         assert_eq!(crx_file.version, 3);
         assert_eq!(crx_file.length, 1049);
         assert_eq!(crx_file.zip_archive.len(), 277495);
-
-        let metadata = fs::metadata(path).await.unwrap();
-        assert_eq!(
-            metadata.size() as u32,
-            12 + crx_file.length + crx_file.zip_archive.len() as u32,
-        )
     }
 
     #[tokio::test]

@@ -6,16 +6,30 @@ use tokio::fs::{create_dir_all, File};
 use tokio::io::AsyncWriteExt;
 use tracing::info;
 
-use crate::crx3;
+use super::crx3;
 use crate::manifest;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ExternalExt {
+struct ExternalExt {
     pub external_crx: PathBuf,
     pub external_version: String,
 }
 
 const DEFAULT_BASE_URL_GOOGLE: &str = "https://clients2.google.com";
+
+pub async fn install(
+    client: ClientWithMiddleware,
+    base_url: Option<String>,
+    extension_id: String,
+    dest_dir: PathBuf,
+    profiles: Vec<String>,
+) -> Result<()> {
+    let ext = download_extension(client, base_url, extension_id, &dest_dir).await?;
+    for p in profiles {
+        install_extension(&ext, &p).await?;
+    }
+    Ok(())
+}
 
 /// download_extension downloads a chromium extension from the Chrome Web Store.
 ///
@@ -23,7 +37,7 @@ const DEFAULT_BASE_URL_GOOGLE: &str = "https://clients2.google.com";
 /// * `base_url` - Use this to override the default base URL.
 /// * `extension_id` - The ID of the extension to download.
 /// * `dest_dir` - The directory to save the extension to.
-pub async fn download_extension(
+async fn download_extension(
     client: ClientWithMiddleware,
     base_url: Option<String>,
     extension_id: String,
@@ -54,12 +68,11 @@ pub async fn download_extension(
     })
 }
 
-pub async fn install_extension(ext: &ExternalExt, profile_dir: &Path) -> Result<()> {
-    let profile_extensions = profile_dir.join("External Extensions");
+async fn install_extension(ext: &ExternalExt, profile_dir: &str) -> Result<()> {
+    let profile_extensions = PathBuf::from(profile_dir).join("External Extensions");
     let mut json_path = profile_extensions.join(ext.external_crx.file_name().unwrap());
     json_path.set_extension("json");
 
-    let profile_dir = profile_dir.to_str().unwrap();
     let path = ext.external_crx.to_str().unwrap();
     info!("Installing Chromium extension {path} into profile {profile_dir}");
 

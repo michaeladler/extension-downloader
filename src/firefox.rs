@@ -31,7 +31,22 @@ struct Src {
 
 const DEFAULT_BASE_URL_MOZILLA: &str = "https://services.addons.mozilla.org";
 
-pub async fn download_extension(
+pub async fn install(
+    client: ClientWithMiddleware,
+    base_url: Option<String>,
+    name: String,
+    dest_dir: PathBuf,
+    profiles: Vec<String>,
+) -> Result<()> {
+    let xpi_path =
+        download_extension(client.clone(), base_url, name.to_string(), &dest_dir).await?;
+    for p in profiles {
+        install_extension(&xpi_path, &p).await?;
+    }
+    Ok(())
+}
+
+async fn download_extension(
     client: ClientWithMiddleware,
     base_url: Option<String>,
     name: String,
@@ -87,8 +102,8 @@ pub async fn download_extension(
     Ok(destination)
 }
 
-pub async fn install_extension(xpi_file: &Path, profile_dir: &Path) -> Result<()> {
-    let ext_dir = profile_dir.join("extensions");
+async fn install_extension(xpi_file: &Path, profile_dir: &str) -> Result<()> {
+    let ext_dir = PathBuf::from(profile_dir).join("extensions");
     fs::create_dir_all(&ext_dir).await?;
     let fname = xpi_file.file_name().unwrap();
 
@@ -96,8 +111,20 @@ pub async fn install_extension(xpi_file: &Path, profile_dir: &Path) -> Result<()
     let dst = ext_dir.join(fname);
     info!("Installing {:?} as {:?}", xpi_file, dst);
 
-    fs::symlink(xpi_file, &bak).await?;
+    create_symlink(xpi_file, &bak).await?;
     fs::rename(&bak, &dst).await?;
+    Ok(())
+}
+
+#[cfg(target_os = "windows")]
+async fn create_symlink(src: &Path, dst: &Path) -> Result<()> {
+    fs::symlink_file(src, dst).await?;
+    Ok(())
+}
+
+#[cfg(not(target_os = "windows"))]
+async fn create_symlink(src: &Path, dst: &Path) -> Result<()> {
+    fs::symlink(src, dst).await?;
     Ok(())
 }
 

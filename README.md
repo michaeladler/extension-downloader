@@ -4,7 +4,8 @@
 # extension-downloader
 
 `extension-downloader` is a tool to **download browser extensions** for Firefox and Chromium-based browsers.
-This can be used to maintain and deploy browser extensions across multiple systems.
+It works on Linux, macOS, and Windows systems.
+A typical use-case is to maintain and deploy browser extensions across multiple systems.
 
 ## Installation
 
@@ -57,6 +58,14 @@ browser = "chromium"
 profile = "~/.config/chromium"
 # chromium extensions are referenced by their ID
 # which can be obtained from the URL in the Chrome web store
+names = [
+    "cjpalhdlnbpafiamejdnhcphjbkeiagm", # ublock-origin
+]
+
+# Microsoft Edge on Windows
+[[extensions]]
+browser = "chromium"
+profile = "Microsoft\\Edge"
 names = [
     "cjpalhdlnbpafiamejdnhcphjbkeiagm", # ublock-origin
 ]

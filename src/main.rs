@@ -1,12 +1,14 @@
 mod chromium;
 mod config;
-mod crx3;
 mod firefox;
 mod manifest;
 
 use anyhow::Result;
-use reqwest_middleware::{ClientBuilder, ClientWithMiddleware};
+use dirs::{config_dir, data_dir, home_dir};
+use reqwest_middleware::ClientBuilder;
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
+use std::env;
+use std::path::Path;
 use std::process::ExitCode;
 use std::{collections::HashMap, path::PathBuf};
 use tokio::task::JoinSet;
@@ -21,27 +23,36 @@ async fn main() -> ExitCode {
         .with_max_level(Level::INFO)
         .finish();
     tracing::subscriber::set_global_default(subscriber).unwrap();
-    let cfg_path = dirs::config_dir()
-        .unwrap()
-        .join("extension-downloader")
-        .join("config.toml");
-    let cfg = config::from_file(&cfg_path).await.unwrap();
-    let err_count = run(&cfg).await.unwrap();
-    if err_count.is_positive() {
-        error!("{} errors occurred", err_count);
-        return ExitCode::FAILURE;
+    let cfg_path = get_config_dir().join("config.toml");
+    match run(&cfg_path).await {
+        Ok(0) => ExitCode::SUCCESS,
+        Ok(err_count) => {
+            error!("{} errors occurred", err_count);
+            ExitCode::FAILURE
+        }
+        Err(err) => {
+            error!("Fatal Error: {}", err);
+            ExitCode::FAILURE
+        }
     }
-    return ExitCode::SUCCESS;
 }
 
-async fn run(cfg: &Config) -> Result<i32> {
+async fn run<P: AsRef<Path>>(cfg_path: P) -> Result<u32> {
+    if !cfg_path.as_ref().exists() {
+        return Err(anyhow::anyhow!(
+            "Config file {:?} does not exist",
+            cfg_path.as_ref()
+        ));
+    }
+    let cfg = config::from_file(cfg_path.as_ref()).await?;
+
     // Retry up to 3 times with increasing intervals between attempts.
     let retry_policy = ExponentialBackoff::builder().build_with_max_retries(3);
     let client = ClientBuilder::new(reqwest::Client::new())
         .with(RetryTransientMiddleware::new_with_policy(retry_policy))
         .build();
 
-    let mut ext_to_profiles: HashMap<(String, config::BrowserKind), Vec<PathBuf>> =
+    let mut ext_to_profiles: HashMap<(String, config::BrowserKind), Vec<String>> =
         HashMap::with_capacity(128);
     // deduplicate extensions
     for ext in &cfg.extensions {
@@ -53,7 +64,7 @@ async fn run(cfg: &Config) -> Result<i32> {
         }
     }
 
-    let extensions_dir: PathBuf = get_extensions_dir(cfg);
+    let extensions_dir: PathBuf = get_extensions_dir(&cfg);
     let dest_dir_chromium = extensions_dir.join("chromium");
     let dest_dir_firefox = extensions_dir.join("firefox");
 
@@ -63,18 +74,18 @@ async fn run(cfg: &Config) -> Result<i32> {
     for ((name, kind), profiles) in ext_to_profiles.drain() {
         match kind {
             config::BrowserKind::Chromium => {
-                set.spawn(do_chromium(
-                    cfg.base_url_google.clone(),
+                set.spawn(chromium::install(
                     client.clone(),
+                    cfg.base_url_google.clone(),
                     name,
                     dest_dir_chromium.clone(),
                     profiles,
                 ));
             }
             config::BrowserKind::Firefox => {
-                set.spawn(do_firefox(
-                    cfg.base_url_mozilla.clone(),
+                set.spawn(firefox::install(
                     client.clone(),
+                    cfg.base_url_mozilla.clone(),
                     name,
                     dest_dir_firefox.clone(),
                     profiles,
@@ -93,42 +104,20 @@ async fn run(cfg: &Config) -> Result<i32> {
     Ok(err_count)
 }
 
-async fn do_chromium(
-    base_url: Option<String>,
-    client: ClientWithMiddleware,
-    name: String,
-    dest_dir: PathBuf,
-    profiles: Vec<PathBuf>,
-) -> Result<()> {
-    let ext = chromium::download_extension(client, base_url, name.to_string(), &dest_dir).await?;
-    for p in profiles {
-        chromium::install_extension(&ext, &p).await?;
-    }
-    Ok(())
-}
-
-async fn do_firefox(
-    base_url: Option<String>,
-    client: ClientWithMiddleware,
-    name: String,
-    dest_dir: PathBuf,
-    profiles: Vec<PathBuf>,
-) -> Result<()> {
-    let xpi_path =
-        firefox::download_extension(client.clone(), base_url, name.to_string(), &dest_dir).await?;
-    for p in profiles {
-        firefox::install_extension(&xpi_path, &p).await?;
-    }
-    Ok(())
-}
-
 fn get_extensions_dir(cfg: &Config) -> PathBuf {
     match &cfg.extensions_dir {
         Some(dir) => dir.clone(),
-        None => dirs::data_dir()
-            .unwrap_or(dirs::home_dir().unwrap().join(".local").join("share"))
+        None => data_dir()
+            .unwrap_or(home_dir().unwrap().join(".local").join("share"))
             .join("extension-downloader"),
     }
+}
+
+fn get_config_dir() -> PathBuf {
+    // prefer env EXTENSION_DOWNLOADER_CONFIG_DIR if set
+    env::var("EXTENSION_DOWNLOADER_CONFIG_DIR")
+        .map(PathBuf::from)
+        .unwrap_or_else(|_| config_dir().unwrap().join("extension-downloader"))
 }
 
 #[cfg(test)]
@@ -141,6 +130,7 @@ mod tests {
         io::AsyncReadExt,
     };
 
+    #[cfg(not(target_os = "windows"))]
     #[tokio::test]
     async fn test_chromium() {
         let mut server = mockito::Server::new_async().await;
@@ -167,10 +157,15 @@ mod tests {
             extensions: vec![config::Extension {
                 names: vec![extension_id.to_owned()],
                 browser: config::BrowserKind::Chromium,
-                profile: chromium_profile.clone(),
+                profile: chromium_profile.to_string_lossy().to_string(),
             }],
         };
-        _ = run(&cfg).await;
+        let cfg_path = tmp_dir.path().join("config.toml");
+        fs::write(&cfg_path, toml::to_string(&cfg).unwrap())
+            .await
+            .unwrap();
+
+        _ = run(&cfg_path).await;
 
         // check extension was downloaded
         let crx_file = extensions_dir
@@ -188,9 +183,8 @@ mod tests {
         .unwrap();
         let mut content = String::with_capacity(4096);
         f.read_to_string(&mut content).await.unwrap();
-        let ext = serde_json::from_str::<chromium::ExternalExt>(&content).unwrap();
-        assert_eq!(ext.external_crx, crx_file);
-        assert_eq!(ext.external_version, "2.1.2");
+        assert!(content.contains(crx_file.to_str().unwrap()));
+        assert!(content.contains("2.1.2"));
 
         m1.assert_async().await;
     }
@@ -235,10 +229,15 @@ mod tests {
             extensions: vec![config::Extension {
                 names: vec!["vimium-ff".to_string()],
                 browser: config::BrowserKind::Firefox,
-                profile: firefox_profile.clone(),
+                profile: firefox_profile.to_string_lossy().to_string(),
             }],
         };
-        _ = run(&cfg).await;
+        let cfg_path = tmp_dir.path().join("config.toml");
+        fs::write(&cfg_path, toml::to_string(&cfg).unwrap())
+            .await
+            .unwrap();
+
+        _ = run(&cfg_path).await;
 
         m1.assert_async().await;
         m2.assert_async().await;
@@ -316,10 +315,15 @@ mod tests {
             extensions: vec![config::Extension {
                 names: vec!["vimium-ff".to_string()],
                 browser: config::BrowserKind::Firefox,
-                profile: firefox_profile.clone(),
+                profile: firefox_profile.to_string_lossy().to_string(),
             }],
         };
-        let result = run(&cfg).await;
+        let cfg_path = tmp_dir.path().join("config.toml");
+        fs::write(&cfg_path, toml::to_string(&cfg).unwrap())
+            .await
+            .unwrap();
+
+        let result = run(&cfg_path).await;
         assert!(result.is_ok());
         assert_eq!(result.unwrap(), 1);
 
@@ -343,7 +347,11 @@ mod tests {
     #[test]
     fn test_main() {
         let tmp_dir = TempDir::new().unwrap();
-        std::env::set_var("XDG_CONFIG_HOME", tmp_dir.path().to_str().unwrap());
+        let config_dir = tmp_dir.path().join("extension-downloader");
+        std::env::set_var(
+            "EXTENSION_DOWNLOADER_CONFIG_DIR",
+            config_dir.to_str().unwrap(),
+        );
         let cfg = Config {
             base_url_mozilla: None,
             base_url_google: None,
@@ -351,10 +359,7 @@ mod tests {
             extensions: vec![],
         };
         let content = toml::to_string(&cfg).unwrap();
-        let config_path = tmp_dir
-            .path()
-            .join("extension-downloader")
-            .join("config.toml");
+        let config_path = config_dir.join("config.toml");
         {
             std::fs::create_dir_all(config_path.parent().unwrap()).unwrap();
             let mut f = std::fs::File::create(config_path).unwrap();
@@ -362,5 +367,14 @@ mod tests {
             f.flush().unwrap();
         }
         _ = main();
+    }
+
+    #[tokio::test]
+    async fn test_run_config_not_found() {
+        let err = run("/does/not/exist.toml").await.unwrap_err();
+        assert_eq!(
+            err.to_string(),
+            "Config file \"/does/not/exist.toml\" does not exist"
+        );
     }
 }
