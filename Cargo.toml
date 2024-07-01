@@ -24,4 +24,4 @@ mockito = "1.4.0"
 temp-dir = "0.1.13"
 
 [target.'cfg(target_os = "windows")'.dependencies]
-winreg = "0.7"
+winreg = "0.52"
