@@ -17,4 +17,5 @@ repos:
       - id: fmt
       - id: check
       - id: clippy
+        args: ["--", "-D", "warnings"]
       - id: test
