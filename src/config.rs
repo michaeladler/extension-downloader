@@ -96,7 +96,7 @@ mod tests {
     fn test_expand_tilde() {
         let home = dirs::home_dir().unwrap();
         let path = "~/foo";
-        let expanded = expand_tilde(&path);
+        let expanded = expand_tilde(path);
         assert_eq!(expanded, home.join("foo").to_str().unwrap());
     }
 }
