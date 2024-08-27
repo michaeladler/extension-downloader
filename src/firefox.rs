@@ -6,6 +6,7 @@ use std::path::{Path, PathBuf};
 use tokio::{
     fs::{self, File},
     io::AsyncWriteExt,
+    task::JoinSet,
 };
 use tracing::{debug, info, warn};
 
@@ -40,9 +41,15 @@ pub async fn install(
 ) -> Result<()> {
     let xpi_path =
         download_extension(client.clone(), base_url, name.to_string(), &dest_dir).await?;
+
+    let mut set = JoinSet::new();
     for p in profiles {
-        install_extension(&xpi_path, &p).await?;
+        set.spawn(install_extension(xpi_path.clone(), p));
     }
+    while let Some(res) = set.join_next().await {
+        res??;
+    }
+
     Ok(())
 }
 
@@ -102,7 +109,7 @@ async fn download_extension(
     Ok(destination)
 }
 
-async fn install_extension(xpi_file: &Path, profile_dir: &str) -> Result<()> {
+async fn install_extension(xpi_file: PathBuf, profile_dir: String) -> Result<()> {
     let ext_dir = PathBuf::from(profile_dir).join("extensions");
     fs::create_dir_all(&ext_dir).await?;
     let fname = xpi_file.file_name().unwrap();
@@ -111,7 +118,7 @@ async fn install_extension(xpi_file: &Path, profile_dir: &str) -> Result<()> {
     let dst = ext_dir.join(fname);
     info!("Installing {:?} as {:?}", xpi_file, dst);
 
-    create_symlink(xpi_file, &bak).await?;
+    create_symlink(&xpi_file, &bak).await?;
     fs::rename(&bak, &dst).await?;
     Ok(())
 }
