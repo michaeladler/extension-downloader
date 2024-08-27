@@ -75,10 +75,13 @@ async fn download_extension(
         let mf = manifest::from_file(&destination).await?;
         let old_version = mf.version;
         if old_version == new_version {
-            info!("Firefox extension {name} already up-to-date (version: {new_version})");
+            info!(
+                "{name} {old_version} already up-to-date ({})",
+                dest_dir.to_string_lossy()
+            );
             return Ok(destination);
         }
-        info!("Downloading update for Firefox extension {name}: {old_version} -> {new_version}");
+        info!("{name}: updating {old_version} -> {new_version}");
     } else {
         debug!("Downloading Firefox extension {name} {new_version}");
     }
@@ -111,13 +114,21 @@ async fn download_extension(
 
 async fn install_extension(xpi_file: PathBuf, profile_dir: String) -> Result<()> {
     let ext_dir = PathBuf::from(profile_dir).join("extensions");
-    fs::create_dir_all(&ext_dir).await?;
     let fname = xpi_file.file_name().unwrap();
 
     let bak = ext_dir.join(format!("{}.bak", fname.to_str().unwrap()));
     let dst = ext_dir.join(fname);
-    info!("Installing {:?} as {:?}", xpi_file, dst);
 
+    // check if xpi file already points to dst
+    if let Ok(link) = fs::read_link(&dst).await {
+        if link == xpi_file {
+            debug!("{:?} is already installed in {:?}", xpi_file, dst);
+            return Ok(());
+        }
+    }
+
+    info!("Installing {:?} as {:?}", xpi_file, dst);
+    fs::create_dir_all(&ext_dir).await?;
     create_symlink(&xpi_file, &bak).await?;
     fs::rename(&bak, &dst).await?;
     Ok(())

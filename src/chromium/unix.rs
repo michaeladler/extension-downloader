@@ -30,24 +30,24 @@ pub async fn install(
         match (check_result.installed, check_result.latest) {
             (true, true) => {
                 info!(
-                    "{}: Chromium extension {} {} already up-to-date",
-                    p, manifest.name, manifest.version
+                    "{} {} already up-to-date ({})",
+                    manifest.name, manifest.version, p
                 );
             }
             (true, false) => {
                 info!(
-                    "{}: Upgrading Chromium extension {}: {} -> {}",
-                    p,
+                    "upgrading {}: {} -> {} ({})",
                     manifest.name,
                     check_result.ext.unwrap().external_version,
-                    manifest.version
+                    manifest.version,
+                    p
                 );
                 install_extension(&ext, &p).await?;
             }
             (false, _) => {
                 info!(
-                    "{}: Installing Chromium extension {} {}",
-                    p, manifest.name, manifest.version
+                    "installing {} {} into {}",
+                    manifest.name, manifest.version, p
                 );
                 install_extension(&ext, &p).await?;
             }
