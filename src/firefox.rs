@@ -38,7 +38,7 @@ pub async fn install(
     name: String,
     dest_dir: PathBuf,
     profiles: Vec<String>,
-) -> Result<()> {
+) -> Result<Option<PathBuf>> {
     let xpi_path =
         download_extension(client.clone(), base_url, name.to_string(), &dest_dir).await?;
 
@@ -49,8 +49,7 @@ pub async fn install(
     while let Some(res) = set.join_next().await {
         res??;
     }
-
-    Ok(())
+    Ok(Some(xpi_path))
 }
 
 async fn download_extension(

@@ -23,7 +23,7 @@ pub async fn install(
     extension_id: String,
     dest_dir: PathBuf,
     profiles: Vec<String>,
-) -> Result<()> {
+) -> Result<Option<PathBuf>> {
     let (ext, manifest) = download_extension(client, base_url, extension_id, &dest_dir).await?;
     for p in profiles {
         let check_result = check_installed(&ext, &p).await?;
@@ -53,7 +53,7 @@ pub async fn install(
             }
         }
     }
-    Ok(())
+    Ok(Some(ext.external_crx))
 }
 
 /// download_extension downloads a chromium extension from the Chrome Web Store.

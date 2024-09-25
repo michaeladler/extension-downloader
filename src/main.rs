@@ -7,13 +7,15 @@ use anyhow::Result;
 use dirs::{config_dir, data_dir, home_dir};
 use reqwest_middleware::ClientBuilder;
 use reqwest_retry::{policies::ExponentialBackoff, RetryTransientMiddleware};
+use std::collections::HashSet;
 use std::env;
 use std::path::Path;
 use std::process::ExitCode;
 use std::{collections::HashMap, path::PathBuf};
 use tokio::task::JoinSet;
-use tracing::{error, Level};
+use tracing::{error, info, Level};
 use tracing_subscriber::FmtSubscriber;
+use walkdir::WalkDir;
 
 use config::Config;
 
@@ -94,13 +96,31 @@ async fn run<P: AsRef<Path>>(cfg_path: P) -> Result<u32> {
         }
     }
 
+    let mut known_files = HashSet::new();
     while let Some(result) = set.join_next().await {
-        if let Err(err) = result.unwrap() {
-            error!("Error: {}", err);
-            err_count += 1;
+        match result.unwrap() {
+            Ok(Some(path)) => {
+                known_files.insert(path);
+            }
+            Err(err) => {
+                error!("Error: {}", err);
+                err_count += 1;
+            }
+            _ => {}
         }
     }
 
+    for dir in &[dest_dir_chromium, dest_dir_firefox] {
+        if !dir.exists() {
+            continue;
+        }
+        for file in WalkDir::new(dir).into_iter().filter_map(|file| file.ok()) {
+            if file.metadata().unwrap().is_file() && !known_files.contains(file.path()) {
+                info!("Purging old extension: {:?}", file.path());
+                tokio::fs::remove_file(file.path()).await?;
+            }
+        }
+    }
     Ok(err_count)
 }
 
@@ -165,12 +185,22 @@ mod tests {
             .await
             .unwrap();
 
+        let chromium_extensions_dir = extensions_dir.join("chromium");
+        // create stale extension
+        fs::create_dir_all(&chromium_extensions_dir).await.unwrap();
+        let stale_path = chromium_extensions_dir.join("test.crx");
+        fs::File::create(&stale_path).await.unwrap();
+
         _ = run(&cfg_path).await;
 
+        // check that stale file was removed
+        assert_eq!(
+            fs::metadata(stale_path).await.unwrap_err().kind(),
+            std::io::ErrorKind::NotFound
+        );
+
         // check extension was downloaded
-        let crx_file = extensions_dir
-            .join("chromium")
-            .join(format!("{}.crx", extension_id));
+        let crx_file = chromium_extensions_dir.join(format!("{}.crx", extension_id));
         assert!(fs::metadata(&crx_file).await.unwrap().is_file());
 
         // check that a symlink was created
@@ -237,17 +267,27 @@ mod tests {
             .await
             .unwrap();
 
+        // create stale extension
+        let ff_extensions_dir = extensions_dir.join("firefox");
+        fs::create_dir_all(&ff_extensions_dir).await.unwrap();
+        let stale_path = ff_extensions_dir.join("test.crx");
+        fs::File::create(&stale_path).await.unwrap();
+
         _ = run(&cfg_path).await;
 
         m1.assert_async().await;
         m2.assert_async().await;
 
+        // check that stale file was removed
+        assert_eq!(
+            fs::metadata(stale_path).await.unwrap_err().kind(),
+            std::io::ErrorKind::NotFound
+        );
+
         // check that the file was downloaded
         let mut count: i64 = 0;
         let mut fnames: Vec<PathBuf> = Vec::new();
-        let mut read_dir = tokio::fs::read_dir(extensions_dir.join("firefox"))
-            .await
-            .unwrap();
+        let mut read_dir = tokio::fs::read_dir(ff_extensions_dir).await.unwrap();
         while let Some(entry) = read_dir.next_entry().await.unwrap() {
             fnames.push(entry.path());
             count += 1;

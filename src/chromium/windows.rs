@@ -9,7 +9,7 @@ pub async fn install(
     extension_id: String,
     _dest_dir: PathBuf,
     profiles: Vec<String>,
-) -> Result<()> {
+) -> Result<Option<PathBuf>> {
     let hklm = winreg::RegKey::predef(winreg::enums::HKEY_LOCAL_MACHINE);
     let os_arch = std::env::var("PROCESSOR_ARCHITECTURE").unwrap_or_default();
 
@@ -32,5 +32,5 @@ pub async fn install(
         }
     }
 
-    Ok(())
+    Ok(None)
 }
