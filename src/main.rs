@@ -110,14 +110,16 @@ async fn run<P: AsRef<Path>>(cfg_path: P) -> Result<u32> {
         }
     }
 
-    for dir in &[dest_dir_chromium, dest_dir_firefox] {
-        if !dir.exists() {
-            continue;
-        }
-        for file in WalkDir::new(dir).into_iter().filter_map(|file| file.ok()) {
-            if file.metadata().unwrap().is_file() && !known_files.contains(file.path()) {
-                info!("Purging old extension: {:?}", file.path());
-                tokio::fs::remove_file(file.path()).await?;
+    if err_count == 0 {
+        for dir in &[dest_dir_chromium, dest_dir_firefox] {
+            if !dir.exists() {
+                continue;
+            }
+            for file in WalkDir::new(dir).into_iter().filter_map(|file| file.ok()) {
+                if file.metadata().unwrap().is_file() && !known_files.contains(file.path()) {
+                    info!("Purging old extension: {:?}", file.path());
+                    tokio::fs::remove_file(file.path()).await?;
+                }
             }
         }
     }
