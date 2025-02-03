@@ -16,7 +16,7 @@ anyhow = "1"
 tracing = "0.1"
 tracing-subscriber = "0.3"
 zip = { version = "2.2", default-features = false, features = ["deflate"] }
-serde_json = "1.0.137"
+serde_json = "1.0.138"
 sha2 = "0.10.8"
 walkdir = "2"
 
