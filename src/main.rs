@@ -13,6 +13,7 @@ use std::path::Path;
 use std::process::ExitCode;
 use std::{collections::HashMap, path::PathBuf};
 use tokio::task::JoinSet;
+use tokio::time::Instant;
 use tracing::{error, info, Level};
 use tracing_subscriber::FmtSubscriber;
 use walkdir::WalkDir;
@@ -26,7 +27,11 @@ async fn main() -> ExitCode {
         .finish();
     tracing::subscriber::set_global_default(subscriber).unwrap();
     let cfg_path = get_config_dir().join("config.toml");
-    match run(&cfg_path).await {
+    let start = Instant::now();
+    let result = run(&cfg_path).await;
+    let duration = start.elapsed();
+    info!("Finished in {:?}", duration);
+    match result {
         Ok(0) => ExitCode::SUCCESS,
         Ok(err_count) => {
             error!("{} errors occurred", err_count);

@@ -74,7 +74,7 @@ async fn download_extension(
         let mf = manifest::from_file(&destination).await?;
         let old_version = mf.version;
         if old_version == new_version {
-            info!(
+            debug!(
                 "{name} {old_version} already up-to-date ({})",
                 dest_dir.to_string_lossy()
             );

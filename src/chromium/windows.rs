@@ -1,7 +1,7 @@
 use anyhow::Result;
 use reqwest_middleware::ClientWithMiddleware;
 use std::path::PathBuf;
-use tracing::info;
+use tracing::{debug, info};
 
 pub async fn install(
     _client: ClientWithMiddleware,
@@ -28,7 +28,7 @@ pub async fn install(
             )?;
             info!("Installed extension {extension_id} for {path}");
         } else {
-            info!("Extension {extension_id} already installed for {path}");
+            debug!("Extension {extension_id} already installed for {path}");
         }
     }
 

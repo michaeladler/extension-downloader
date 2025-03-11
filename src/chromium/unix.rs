@@ -29,7 +29,7 @@ pub async fn install(
         let check_result = check_installed(&ext, &p).await?;
         match (check_result.installed, check_result.latest) {
             (true, true) => {
-                info!(
+                debug!(
                     "{} {} already up-to-date ({})",
                     manifest.name, manifest.version, p
                 );
