@@ -16,7 +16,6 @@ browser = "chromium"
 profile = "~/.config/chromium"
 names = [
     "cjpalhdlnbpafiamejdnhcphjbkeiagm", # ublock-origin
-    "dbepggeogbaibhgnhhndojpepiihcmeb", # vimium
     "eimadpbcbfnmbkopoojfekhnkhdbieeh", # darkreader
 ]
 
@@ -25,7 +24,6 @@ names = [
 browser = "chromium"
 profile = "~/.config/BraveSoftware/Brave-Browser"
 names = [
-    "dbepggeogbaibhgnhhndojpepiihcmeb", # vimium
     "eimadpbcbfnmbkopoojfekhnkhdbieeh", # darkreader
 ]
 
