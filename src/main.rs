@@ -15,17 +15,21 @@ use std::{collections::HashMap, path::PathBuf};
 use tokio::task::JoinSet;
 use tokio::time::Instant;
 use tracing::{error, info, Level};
-use tracing_subscriber::FmtSubscriber;
+use tracing_subscriber::{fmt::Subscriber as FmtSubscriber, EnvFilter};
 use walkdir::WalkDir;
 
 use config::Config;
 
 #[tokio::main]
 async fn main() -> ExitCode {
+    let env_filter =
+        EnvFilter::try_from_default_env().unwrap_or_else(|_| EnvFilter::new(Level::INFO.as_str())); // default to "info" if RUST_LOG is not set
+
     let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::DEBUG)
+        .with_env_filter(env_filter)
         .finish();
-    tracing::subscriber::set_global_default(subscriber).unwrap();
+    tracing::subscriber::set_global_default(subscriber).expect("Failed to set global subscriber");
+
     let cfg_path = get_config_dir().join("config.toml");
     let start = Instant::now();
     let result = run(&cfg_path).await;
