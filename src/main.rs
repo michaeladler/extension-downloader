@@ -23,7 +23,7 @@ use config::Config;
 #[tokio::main]
 async fn main() -> ExitCode {
     let subscriber = FmtSubscriber::builder()
-        .with_max_level(Level::INFO)
+        .with_max_level(Level::DEBUG)
         .finish();
     tracing::subscriber::set_global_default(subscriber).unwrap();
     let cfg_path = get_config_dir().join("config.toml");
@@ -108,7 +108,7 @@ async fn run<P: AsRef<Path>>(cfg_path: P) -> Result<u32> {
                 known_files.insert(path);
             }
             Err(err) => {
-                error!("Error: {}", err);
+                error!("{}", err);
                 err_count += 1;
             }
             _ => {}

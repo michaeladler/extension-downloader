@@ -2,8 +2,10 @@ use anyhow::Result;
 use reqwest_middleware::ClientWithMiddleware;
 use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
+use std::time::Duration;
 use tokio::fs::{create_dir_all, try_exists, File};
 use tokio::io::{AsyncReadExt, AsyncWriteExt};
+use tokio::time::sleep;
 use tracing::{debug, info};
 
 use super::crx3;
@@ -71,9 +73,30 @@ async fn download_extension(
     debug!("Downloading Chromium extension {extension_id}");
 
     let base_url: String = base_url.unwrap_or(DEFAULT_BASE_URL_GOOGLE.to_string());
-    let body = client.get(format!(
+    let url = format!(
         "{base_url}/service/update2/crx?response=redirect&os=linux&arch=x64&os_arch=x86_64&nacl_arch=x86-64&prod=chromium&prodchannel=unknown&prodversion=91.0.4442.4&lang=en-US&acceptformat=crx2,crx3&x=id%3D{extension_id}%26installsource%3Dondemand%26uc",
-    )).send().await?.bytes().await?;
+    );
+    debug!("Downloading {url}");
+
+    let mut retries = 3;
+    let body = loop {
+        let response = client.get(&url).send().await?;
+        let body = response.bytes().await?;
+
+        if !body.is_empty() {
+            break body;
+        }
+
+        retries -= 1;
+        if retries == 0 {
+            return Err(anyhow::anyhow!(
+                "{extension_id}: failed to fetch non-empty body after 3 retries"
+            ));
+        }
+
+        debug!("Retrying... remaining attempts: {}", retries);
+        sleep(Duration::from_secs(1)).await; // Optional delay between retries
+    };
 
     create_dir_all(&dest_dir).await?;
 
