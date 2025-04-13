@@ -168,7 +168,7 @@ mod tests {
 
         let extension_id = "dbepggeogbaibhgnhhndojpepiihcmeb";
 
-        let url = format!("/service/update2/crx?response=redirect&os=linux&arch=x64&os_arch=x86_64&nacl_arch=x86-64&prod=chromium&prodchannel=unknown&prodversion=91.0.4442.4&lang=en-US&acceptformat=crx2,crx3&x=id%3D{extension_id}%26installsource%3Dondemand%26uc");
+        let url = format!("/service/update2/crx?response=redirect&prodversion=119.0.6045.199&acceptformat=crx2,crx3&x=id%3D{extension_id}%26installsource%3Dondemand%26uc");
         let url_str: &str = &url;
         let m1 = server
             .mock("GET", url_str)
