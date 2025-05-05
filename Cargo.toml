@@ -17,7 +17,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 zip = { version = "2.6", default-features = false, features = ["deflate"] }
 serde_json = "1.0.140"
-sha2 = "0.10.8"
+sha2 = "0.10.9"
 walkdir = "2"
 
 [dev-dependencies]
