@@ -1,0 +1,10 @@
+coverage:
+  status:
+    project:
+      default:
+        informational: true
+    patch:
+      default:
+        target: auto
+        threshold: 10% # the leniency in hitting the target
+        informational: true # sometimes it's just not practical given Go's verbosity
