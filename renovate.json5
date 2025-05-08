@@ -9,7 +9,8 @@
     "schedule:monthly",
   ],
   "nix": {
-    "enabled": true
+    // currently broken, see https://github.com/renovatebot/renovate/pull/33991
+    "enabled": false
   },
   packageRules: [
     {
@@ -19,7 +20,6 @@
       groupName: 'cargo-non-major',
       automerge: true,
     },
-    // currently broken, see https://github.com/renovatebot/renovate/pull/33991
     // {
     //   "matchManagers": ["nix"],
     //   "automerge": true,
