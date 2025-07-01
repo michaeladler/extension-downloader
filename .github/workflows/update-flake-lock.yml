@@ -14,9 +14,9 @@ jobs:
       pull-requests: write
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: DeterminateSystems/determinate-nix-action@v3
-      - uses: DeterminateSystems/update-flake-lock@v25
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4
+      - uses: DeterminateSystems/determinate-nix-action@be37d3c211163697faaad696b47c35ecf27fc3d6 # v3
+      - uses: DeterminateSystems/update-flake-lock@428c2b58a4b7414dabd372acb6a03dba1084d3ab # v25
         with:
           pr-title: "Update Nix flake inputs" # Title of PR to be created
           pr-labels: |                  # Labels to be set on the PR
