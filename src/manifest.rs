@@ -60,6 +60,6 @@ mod tests {
             name: "Vimium".to_string(),
             version: "2.1.2".to_string(),
         };
-        assert_eq!(format!("{}", manifest), "Vimium v2.1.2");
+        assert_eq!(format!("{manifest}"), "Vimium v2.1.2");
     }
 }

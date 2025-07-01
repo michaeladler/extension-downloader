@@ -211,14 +211,14 @@ mod tests {
         );
 
         // check extension was downloaded
-        let crx_file = chromium_extensions_dir.join(format!("{}.crx", extension_id));
+        let crx_file = chromium_extensions_dir.join(format!("{extension_id}.crx"));
         assert!(fs::metadata(&crx_file).await.unwrap().is_file());
 
         // check that a symlink was created
         let mut f = fs::File::open(
             chromium_profile
                 .join("External Extensions")
-                .join(format!("{}.json", extension_id)),
+                .join(format!("{extension_id}.json")),
         )
         .await
         .unwrap();

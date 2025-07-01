@@ -100,7 +100,7 @@ async fn download_extension(
 
     create_dir_all(&dest_dir).await?;
 
-    let destination = dest_dir.join(format!("{}.crx", extension_id));
+    let destination = dest_dir.join(format!("{extension_id}.crx"));
     let mut file = File::create(&destination).await?;
     file.write_all(&body).await?;
     file.flush().await?; // ensure file is fully persisted, otherwise install_extension can fail
@@ -207,7 +207,7 @@ mod tests {
 
         let tmp_dir = TempDir::new().unwrap();
         let dest_dir = tmp_dir.path().join("storage");
-        let expected_crx_path = dest_dir.join(format!("{}.crx", extension_id));
+        let expected_crx_path = dest_dir.join(format!("{extension_id}.crx"));
 
         let chromium_profile_missing = tmp_dir.path().join("profile/chromium_missing");
 
@@ -219,7 +219,7 @@ mod tests {
             let mut f = File::create(
                 chromium_profile_outdated
                     .join("External Extensions")
-                    .join(format!("{}.json", extension_id)),
+                    .join(format!("{extension_id}.json")),
             )
             .await
             .unwrap();
@@ -242,7 +242,7 @@ mod tests {
             let mut f = File::create(
                 chromium_profile_up_to_date
                     .join("External Extensions")
-                    .join(format!("{}.json", extension_id)),
+                    .join(format!("{extension_id}.json")),
             )
             .await
             .unwrap();
@@ -284,7 +284,7 @@ mod tests {
             let mut f = fs::File::open(
                 profile
                     .join("External Extensions")
-                    .join(format!("{}.json", extension_id)),
+                    .join(format!("{extension_id}.json")),
             )
             .await
             .unwrap();
