@@ -1,0 +1,67 @@
+version: 2
+
+project_name: extension-downloader
+
+builds:
+  - id: extension-downloader
+    builder: rust
+    command: build
+    targets:
+      - x86_64-unknown-linux-gnu
+
+archives:
+  - id: extension-downloader
+    ids: [ extension-downloader ]
+    name_template: >-
+      {{ .ProjectName }}_{{ .Version }}_
+      {{- if eq .Os "darwin" }}macOS
+      {{- else if eq .Os "linux" }}Linux
+      {{- else }}{{ .Os }}{{ end }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else }}{{ .Arch }}{{ end }}
+    format_overrides:
+      - formats: ['tar.zst']
+    files:
+      - LICENSE
+
+nfpms:
+  - id: extension-downloader
+    package_name: extension-downloader
+    ids: [ extension-downloader ]
+    formats:
+      - deb
+      - rpm
+    maintainer: Michael Adler <therisen06@gmail.com>
+    homepage: https://github.com/michaeladler/extension-downloader
+    description: download browser extensions for Firefox and Chromium-based browsers
+    dependencies:
+      - openssl
+    section: web
+    priority: extra
+    contents:
+      # example configurations
+      - src: example/
+        dst: /usr/share/doc/extension-downloader/example/
+
+checksum:
+  name_template: 'checksums.txt'
+
+release:
+  draft: true
+  replace_existing_draft: true
+
+changelog:
+  sort: asc
+  groups:
+    - title: Features
+      regexp: "^.*feat[(\\w)]*:+.*$"
+      order: 0
+    - title: "Bug fixes"
+      regexp: "^.*fix[(\\w)]*:+.*$"
+      order: 1
+    - title: Others
+      order: 999
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
