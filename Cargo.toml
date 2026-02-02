@@ -5,9 +5,9 @@ license = "Apache-2.0"
 authors = ["Michael Adler <therisen06@gmail.com>"]
 
 [dependencies]
-reqwest = { version = "0.12", features = ["json"] }
-reqwest-middleware = "0.4"
-reqwest-retry = "0.8"
+reqwest = { version = "0.13", features = ["json"] }
+reqwest-middleware = "0.5"
+reqwest-retry = "0.9"
 serde = { version = "1.0", features = ["derive"] }
 tokio = { version = "1", features = ["full"] }
 toml = "0.9.0"
@@ -21,7 +21,7 @@ sha2 = "0.10.9"
 walkdir = "2"
 
 [dev-dependencies]
-mockito = "=1.7.1"
+mockito = "=1.7.2"
 temp-dir = "=0.1.16"
 
 [target.'cfg(target_os = "windows")'.dependencies]
