@@ -1,4 +1,10 @@
-{ lib, rustPlatform, pkg-config, openssl }:
+{
+  lib,
+  rustPlatform,
+  pkg-config,
+  openssl,
+  cacert,
+}:
 
 rustPlatform.buildRustPackage {
   pname = "extension-downloader";
@@ -9,6 +15,8 @@ rustPlatform.buildRustPackage {
   nativeBuildInputs = [ pkg-config ];
 
   buildInputs = [ openssl ];
+
+  checkInputs = [ cacert ];
 
   cargoLock = {
     lockFile = ./Cargo.lock;
