@@ -148,14 +148,12 @@ async fn create_symlink(src: &Path, dst: &Path) -> Result<()> {
 fn compute_hash(algo: &str, content: &[u8]) -> Option<String> {
     match algo {
         "sha256" => {
-            let mut hasher = Sha256::new();
-            hasher.update(content);
-            Some(format!("{:x}", hasher.finalize()))
+            let hash = Sha256::digest(content);
+            Some(hex::encode(hash))
         }
         "sha512" => {
-            let mut hasher = Sha512::new();
-            hasher.update(content);
-            Some(format!("{:x}", hasher.finalize()))
+            let hash = Sha512::digest(content);
+            Some(hex::encode(hash))
         }
         _ => {
             warn!("Unsupported hash algorithm '{algo}'. Skipping hash verification.");
