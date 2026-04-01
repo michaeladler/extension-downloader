@@ -17,7 +17,7 @@ tracing = "0.1"
 tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 zip = { version = "8.0", default-features = false, features = ["deflate"] }
 serde_json = "1.0.140"
-sha2 = "0.10.9"
+sha2 = "0.11.0"
 walkdir = "2"
 
 [dev-dependencies]
@@ -25,4 +25,4 @@ mockito = "=1.7.2"
 temp-dir = "=0.2.0"
 
 [target.'cfg(target_os = "windows")'.dependencies]
-winreg = "0.55"
+winreg = "0.56"
