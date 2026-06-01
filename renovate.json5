@@ -1,31 +1,33 @@
 {
-  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
-  "extends": [
-    "config:best-practices",
-    ":semanticCommits",
-    ":semanticCommitTypeAll(chore)",
-    ":prHourlyLimitNone",
-    ":prConcurrentLimitNone",
-    "schedule:monthly"
+  $schema: 'https://docs.renovatebot.com/renovate-schema.json',
+  extends: [
+    'config:best-practices',
+    ':semanticCommits',
+    ':semanticCommitTypeAll(chore)',
+    ':prHourlyLimitNone',
+    ':prConcurrentLimitNone',
+    'schedule:monthly',
   ],
-  minimumReleaseAge: "3 days",
+  minimumReleaseAge: '3 days',
   lockFileMaintenance: {
     enabled: true,
     automerge: true,
     schedule: [
-      "* 0-3 1 * *"
+      '* 0-3 1 * *',
     ],
   },
-  "nix": {
-    "enabled": true
+  nix: {
+    enabled: true,
   },
   packageRules: [
     {
-      "description": "Group all updates into a single MR and automerge if CI passes",
-      "matchPackagePatterns": ["*"],
-      "groupName": "all dependencies",
-      "groupSlug": "all",
-      "automerge": true,
-    }
-  ]
+      description: 'Group all updates into a single MR and automerge if CI passes',
+      groupName: 'all dependencies',
+      groupSlug: 'all',
+      automerge: true,
+      matchPackageNames: [
+        '*',
+      ],
+    },
+  ],
 }
